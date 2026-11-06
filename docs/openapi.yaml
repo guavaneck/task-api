@@ -3,8 +3,10 @@ info:
   title: Task API
   version: 1.0.0
 servers:
+  - url: https://task-api-service-rt82.onrender.com
+    description: Production server
   - url: http://localhost:3000
-    description: Local development servers
+    description: Local development server
 tags:
   - name: Tasks
     description: Task-related endpoints
@@ -13,9 +15,16 @@ tags:
 paths:
   /tasks:
     get:
-      summary: List all tasks
+      summary: List tasks
       tags:
         - Tasks
+      parameters:
+        - name: completed
+          in: query
+          required: false
+          description: Filter tasks by completion status. Omit to return all tasks.
+          schema:
+            type: boolean
       responses:
         '200':
           description: OK
@@ -25,6 +34,12 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Task'
+        '400':
+          description: Bad request due to an invalid completed value
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ValidationError'
     post:
       summary: Create a new task
       tags:
@@ -47,17 +62,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                  details:
-                    type: array
-                    items:
-                      type: string
-                example:
-                  errors:
-                    - 'Title must be at least 3 characters'
+                $ref: '#/components/schemas/ValidationError'
   /health:
     get:
       summary: Health Check
@@ -77,6 +82,18 @@ paths:
                     example: ok
 components:
   schemas:
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: string
+          example: Validation failed
+        details:
+          type: array
+          items:
+            type: string
+          example:
+            - completed must be true or false
     Task:
       type: object
       properties:
